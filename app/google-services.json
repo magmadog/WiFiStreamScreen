@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "690900378995",
+    "firebase_url": "https://testforcoursework-5ef23.firebaseio.com",
+    "project_id": "testforcoursework-5ef23",
+    "storage_bucket": "testforcoursework-5ef23.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690900378995:android:0c3beee0f586bbde6e5106",
+        "android_client_info": {
+          "package_name": "info.dvkr.screenstream"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "690900378995-sm49rhogm9glnc9ggfmjnj4l6t419qpe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "info.dvkr.screenstream",
+            "certificate_hash": "b8256ca414b8a3670f90e710d2af0f5854563e93"
+          }
+        },
+        {
+          "client_id": "690900378995-blemj9h86sqqrcvbumgtsg71ddcssd9s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPyVngAOevywROT-or6Oi4XO2fm1E1fZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "690900378995-blemj9h86sqqrcvbumgtsg71ddcssd9s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

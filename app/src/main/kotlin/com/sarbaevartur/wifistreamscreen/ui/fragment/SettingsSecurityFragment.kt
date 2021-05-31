@@ -1,0 +1,170 @@
+package com.sarbaevartur.wifistreamscreen.ui.fragment
+
+import android.os.Bundle
+import android.text.InputFilter
+import android.text.InputType
+import android.view.View
+import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import androidx.fragment.app.Fragment
+import com.afollestad.materialdialogs.LayoutMode
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.WhichButton
+import com.afollestad.materialdialogs.actions.setActionButtonEnabled
+import com.afollestad.materialdialogs.bottomsheets.BottomSheet
+import com.afollestad.materialdialogs.input.getInputField
+import com.afollestad.materialdialogs.input.input
+import com.afollestad.materialdialogs.lifecycle.lifecycleOwner
+import com.elvishew.xlog.XLog
+import com.sarbaevartur.wifistreamscreen.R
+import com.sarbaevartur.wifistreamscreen.data.other.getLog
+import com.sarbaevartur.wifistreamscreen.data.settings.Settings
+import com.sarbaevartur.wifistreamscreen.data.settings.SettingsReadOnly
+import kotlinx.android.synthetic.main.fragment_settings_security.*
+import org.koin.android.ext.android.inject
+
+class SettingsSecurityFragment : Fragment(R.layout.fragment_settings_security) {
+
+    private val settings: Settings by inject()
+    private val settingsListener = object : SettingsReadOnly.OnSettingsChangeListener {
+        override fun onSettingsChanged(key: String) = when (key) {
+            Settings.Key.PIN ->
+                tv_fragment_settings_set_pin_value.text = settings.pin
+
+            Settings.Key.SERVER_PORT ->
+                tv_fragment_settings_server_port_value.text = settings.severPort.toString()
+
+            else -> Unit
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Security - Enable pin
+        with(cb_fragment_settings_enable_pin) {
+            isChecked = settings.enablePin
+            enableDisableViewWithChildren(cl_fragment_settings_hide_pin_on_start, settings.enablePin)
+            enableDisableViewWithChildren(cl_fragment_settings_new_pin_on_app_start, settings.enablePin)
+            enableDisableViewWithChildren(cl_fragment_settings_auto_change_pin, settings.enablePin)
+            enableDisableViewWithChildren(cl_fragment_settings_set_pin, canEnableSetPin())
+            setOnClickListener {
+                if (isChecked) settings.pin = String(settings.pin.toCharArray()) // Workaround for BinaryPreferences IPC
+                settings.enablePin = isChecked
+                enableDisableViewWithChildren(cl_fragment_settings_hide_pin_on_start, isChecked)
+                enableDisableViewWithChildren(cl_fragment_settings_new_pin_on_app_start, isChecked)
+                enableDisableViewWithChildren(cl_fragment_settings_auto_change_pin, isChecked)
+                enableDisableViewWithChildren(cl_fragment_settings_set_pin, canEnableSetPin())
+            }
+            cl_fragment_settings_enable_pin.setOnClickListener { performClick() }
+        }
+
+        // Security - Hide pin on start
+        with(cb_fragment_settings_hide_pin_on_start) {
+            isChecked = settings.hidePinOnStart
+            setOnClickListener { settings.hidePinOnStart = isChecked }
+            cl_fragment_settings_hide_pin_on_start.setOnClickListener { performClick() }
+        }
+
+        // Security - New pin on app start
+        with(cb_fragment_settings_new_pin_on_app_start) {
+            isChecked = settings.newPinOnAppStart
+            enableDisableViewWithChildren(cl_fragment_settings_set_pin, canEnableSetPin())
+            setOnClickListener {
+                settings.newPinOnAppStart = isChecked
+                enableDisableViewWithChildren(cl_fragment_settings_set_pin, canEnableSetPin())
+            }
+            cl_fragment_settings_new_pin_on_app_start.setOnClickListener { performClick() }
+        }
+
+        // Security - Auto change pin
+        with(cb_fragment_settings_auto_change_pin) {
+            isChecked = settings.autoChangePin
+            enableDisableViewWithChildren(cl_fragment_settings_set_pin, canEnableSetPin())
+            setOnClickListener {
+                settings.autoChangePin = isChecked
+                enableDisableViewWithChildren(cl_fragment_settings_set_pin, canEnableSetPin())
+            }
+            cl_fragment_settings_auto_change_pin.setOnClickListener { performClick() }
+        }
+
+        // Security - Set pin
+        tv_fragment_settings_set_pin_value.text = settings.pin
+        cl_fragment_settings_set_pin.setOnClickListener {
+            MaterialDialog(requireActivity(), BottomSheet(LayoutMode.WRAP_CONTENT)).show {
+                lifecycleOwner(viewLifecycleOwner)
+                title(R.string.pref_set_pin)
+                icon(R.drawable.ic_settings_key_24dp)
+                message(R.string.pref_set_pin_dialog)
+                input(
+                    prefill = settings.pin,
+                    inputType = InputType.TYPE_CLASS_NUMBER,
+                    maxLength = 4,
+                    waitForPositiveButton = false
+                ) { dialog, text ->
+                    val isValid = text.length in 4..4 && text.toString().toInt() in 0..9999
+                    dialog.setActionButtonEnabled(WhichButton.POSITIVE, isValid)
+                }
+                positiveButton(android.R.string.ok) { dialog ->
+                    val newValue = dialog.getInputField().text?.toString() ?: settings.pin
+                    if (settings.pin != newValue) settings.pin = newValue
+                }
+                negativeButton(android.R.string.cancel)
+                getInputField().filters = arrayOf<InputFilter>(InputFilter.LengthFilter(4))
+                getInputField().imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
+            }
+        }
+
+        // Advanced - Server port
+        tv_fragment_settings_server_port_value.text = settings.severPort.toString()
+        cl_fragment_settings_server_port.setOnClickListener {
+            MaterialDialog(requireActivity(), BottomSheet(LayoutMode.WRAP_CONTENT)).show {
+                lifecycleOwner(viewLifecycleOwner)
+                title(R.string.pref_server_port)
+                icon(R.drawable.ic_settings_http_24dp)
+                message(R.string.pref_server_port_dialog)
+                input(
+                    prefill = settings.severPort.toString(),
+                    inputType = InputType.TYPE_CLASS_NUMBER,
+                    maxLength = 5,
+                    waitForPositiveButton = false
+                ) { dialog, text ->
+                    val isValid = text.length in 4..5 && text.toString().toInt() in 1025..65535
+                    dialog.setActionButtonEnabled(WhichButton.POSITIVE, isValid)
+                }
+                positiveButton(android.R.string.ok) { dialog ->
+                    val newValue = dialog.getInputField().text?.toString()?.toInt() ?: settings.severPort
+                    if (settings.severPort != newValue) settings.severPort = newValue
+                }
+                negativeButton(android.R.string.cancel)
+                getInputField().filters = arrayOf<InputFilter>(InputFilter.LengthFilter(5))
+                getInputField().imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        settings.registerChangeListener(settingsListener)
+        XLog.d(getLog("onStart", "Invoked"))
+        tv_fragment_settings_set_pin_value.text = settings.pin
+    }
+
+    override fun onStop() {
+        XLog.d(getLog("onStop", "Invoked"))
+        settings.unregisterChangeListener(settingsListener)
+        super.onStop()
+    }
+
+    private fun canEnableSetPin(): Boolean =
+        cb_fragment_settings_enable_pin.isChecked &&
+                cb_fragment_settings_new_pin_on_app_start.isChecked.not() &&
+                cb_fragment_settings_auto_change_pin.isChecked.not()
+
+    private fun enableDisableViewWithChildren(view: View, enabled: Boolean) {
+        view.isEnabled = enabled
+        view.alpha = if (enabled) 1f else .5f
+        if (view is ViewGroup)
+            for (idx in 0 until view.childCount) enableDisableViewWithChildren(view.getChildAt(idx), enabled)
+    }
+}
