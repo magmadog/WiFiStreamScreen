@@ -18,7 +18,25 @@ allprojects {
 }
 ```
 ## Как использовать:
- - Для изменения параметров и прочих настроек обмена визуальной информации
+ - Для использования параметров и прочих настроек технологии обмена визуальной информации
 ```
 import com.sarbaevartur.wifistreamscreen.data.settings.Settings
+```
+ - Для изменения состояния сервера технологии обмена визуальной информации
+```
+import com.sarbaevartur.wifistreamscreen.data.state.AppStateMachine
+```
+ - Для начала обмена
+```
+import com.sarbaevartur.wifistreamscreen.service.helper.IntentAction
+....
+IntentAction.StartStream.sendToAppService(*context*)
+....
+```
+ - Для остановки обмена
+```
+import com.sarbaevartur.wifistreamscreen.service.helper.IntentAction
+....
+IntentAction.StopStream.sendToAppService(*context*)
+....
 ```
